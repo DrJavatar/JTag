@@ -8,6 +8,7 @@ import kotlinx.serialization.json.*
 class JTag(override val name: String) : MutableTag<JTag> {
 
     private val values = linkedMapOf<String, JsonElement>()
+    @Transient val children = linkedMapOf<String, List<JTag>>()
 
     override fun setInt(key: String, integer: Int) {
         values[key] = JsonPrimitive(integer)
@@ -34,7 +35,7 @@ class JTag(override val name: String) : MutableTag<JTag> {
     }
 
     override fun setTag(key: String, tag: JTag) {
-        values[key] = JsonObject(tag.values)
+        children[key] = listOf(tag)
     }
 
     override fun setInts(key: String, vararg values: Int) {
@@ -62,70 +63,81 @@ class JTag(override val name: String) : MutableTag<JTag> {
     }
 
     override fun setTags(key: String, vararg values: JTag) {
-        this.values[key] = TagModule.json.encodeToJsonElement(values)
+        children[key] = listOf(*values)
     }
 
-    override fun int(key: String): Int {
+    override fun getInt(key: String): Int {
         return values[key]?.jsonPrimitive?.int ?: 0
     }
 
-    override fun long(key: String): Long {
+    override fun getLong(key: String): Long {
         return values[key]?.jsonPrimitive?.long ?: 0L
     }
 
-    override fun double(key: String): Double {
+    override fun getDouble(key: String): Double {
         return values[key]?.jsonPrimitive?.double ?: 0.0
     }
 
-    override fun float(key: String): Float {
+    override fun getFloat(key: String): Float {
         return values[key]?.jsonPrimitive?.float ?: 0f
     }
 
-    override fun string(key: String): String {
+    override fun getString(key: String): String {
         return values[key]?.jsonPrimitive?.content ?: ""
     }
 
-    override fun boolean(key: String): Boolean {
+    override fun getBoolean(key: String): Boolean {
         return values[key]?.jsonPrimitive?.boolean ?: false
     }
 
-    override fun tag(key: String): JTag {
-        val json = this.values[key]?.jsonObject
-        if (json != null) {
-            return JTag(key).also { it.values.putAll(json) }
+    override fun getTag(key: String): JTag {
+        if(children.containsKey(key)) {
+            return children[key]?.get(0) ?: this
         }
         return this
     }
 
-    override fun ints(key: String): List<Int> {
+    override fun getInts(key: String): List<Int> {
         return this.values[key]?.jsonArray?.mapNotNull { it.jsonPrimitive.int } ?: mutableListOf()
     }
 
-    override fun longs(key: String): List<Long> {
+    override fun getLongs(key: String): List<Long> {
         return this.values[key]?.jsonArray?.mapNotNull { it.jsonPrimitive.long } ?: mutableListOf()
     }
 
-    override fun doubles(key: String): List<Double> {
+    override fun getDoubles(key: String): List<Double> {
         return this.values[key]?.jsonArray?.mapNotNull { it.jsonPrimitive.double } ?: mutableListOf()
     }
 
-    override fun floats(key: String): List<Float> {
+    override fun getFloats(key: String): List<Float> {
         return this.values[key]?.jsonArray?.mapNotNull { it.jsonPrimitive.float } ?: mutableListOf()
     }
 
-    override fun strings(key: String): List<String> {
+    override fun getStrings(key: String): List<String> {
         return this.values[key]?.jsonArray?.mapNotNull { it.jsonPrimitive.content } ?: mutableListOf()
     }
 
-    override fun booleans(key: String): List<Boolean> {
+    override fun getBooleans(key: String): List<Boolean> {
         return this.values[key]?.jsonArray?.mapNotNull { it.jsonPrimitive.boolean } ?: mutableListOf()
     }
 
-    override fun tags(key: String): List<Tag> {
-        return this.values[key]?.jsonArray?.mapNotNull { Json.decodeFromJsonElement(it) } ?: mutableListOf()
+    override fun getTags(key: String): List<JTag> {
+        if(children.containsKey(key)) {
+            return children[key]!!
+        }
+        return mutableListOf()
+    }
+
+    override fun has(key: String): Boolean {
+        return this.values.containsKey(key)
     }
 
     override fun toString(): String {
+        val values = linkedMapOf<String, JsonElement>()
+        values.putAll(this.values)
+        children.entries.forEach {
+            it.value.forEach { tag -> values[tag.name] = JsonObject(tag.values) }
+        }
         return JsonObject(values).toString()
     }
 

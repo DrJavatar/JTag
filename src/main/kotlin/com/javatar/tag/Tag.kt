@@ -1,25 +1,25 @@
 package com.javatar.tag
 
-import kotlinx.serialization.json.JsonElement
-
 sealed interface Tag {
 
     val name: String
 
-    fun int(key: String): Int
-    fun long(key: String): Long
-    fun double(key: String): Double
-    fun float(key: String): Float
-    fun string(key: String): String
-    fun boolean(key: String): Boolean
-    fun tag(key: String): Tag
+    fun getInt(key: String): Int
+    fun getLong(key: String): Long
+    fun getDouble(key: String): Double
+    fun getFloat(key: String): Float
+    fun getString(key: String): String
+    fun getBoolean(key: String): Boolean
+    fun getTag(key: String): Tag
 
-    fun ints(key: String): List<Int>
-    fun longs(key: String): List<Long>
-    fun doubles(key: String): List<Double>
-    fun floats(key: String): List<Float>
-    fun strings(key: String): List<String>
-    fun booleans(key: String): List<Boolean>
-    fun tags(key: String): List<Tag>
+    fun getInts(key: String): List<Int>
+    fun getLongs(key: String): List<Long>
+    fun getDoubles(key: String): List<Double>
+    fun getFloats(key: String): List<Float>
+    fun getStrings(key: String): List<String>
+    fun getBooleans(key: String): List<Boolean>
+    fun getTags(key: String): List<Tag>
+
+    fun has(key: String) : Boolean
 
 }

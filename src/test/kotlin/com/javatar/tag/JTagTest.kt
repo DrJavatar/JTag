@@ -1,8 +1,8 @@
 package com.javatar.tag
 
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.encodeToJsonElement
+import com.javatar.tag.delegates.int
+import com.javatar.tag.delegates.string
+import com.javatar.tag.delegates.tag
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -16,15 +16,15 @@ class JTagTest {
 
         tag.setInt("age", 5)
 
-        assert(tag.int("age") == 5) { "Failed to add int to tag." }
+        assert(tag.getInt("age") == 5) { "Failed to add int to tag." }
 
         tag.setString("name", "Javatar")
 
-        assert(tag.string("name") == "Javatar") { "Failed to add string to tag." }
+        assert(tag.getString("name") == "Javatar") { "Failed to add string to tag." }
 
         tag.setBoolean("male", true)
 
-        assert(tag.boolean("male")) { "Failed to add boolean to tag." }
+        assert(tag.getBoolean("male")) { "Failed to add boolean to tag." }
 
     }
 
@@ -41,11 +41,34 @@ class JTagTest {
 
         tag.setTag("home", home)
 
-        val extracted = tag.tag("home")
+        val extracted = tag.getTag("home")
 
-        assert(extracted.int("home_age") == 55) { "Failed to extract tag home from root tag $extracted" }
+        assert(extracted.getInt("home_age") == 55) { "Failed to extract tag home from root tag $extracted" }
 
         println(tag)
+    }
+
+    @Test
+    fun delegates() {
+        val tag = JTag("test")
+
+        var age by tag.int(55)
+
+        assert(age == 55) { "Failed to create integer delegate" }
+
+        age = 255
+
+        assert(tag.getInt("age") == 255) { "Failed to add age data." }
+
+        val home by tag.tag {
+            setString("phone", "some phone")
+            setString("street", "some street")
+        }
+
+        println(home)
+
+        println(tag)
+
     }
 
     companion object {
